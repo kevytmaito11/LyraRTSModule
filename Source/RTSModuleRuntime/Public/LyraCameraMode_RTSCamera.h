@@ -102,7 +102,7 @@ private:
 	UPROPERTY()
 		FName CameraBlockingVolumeTag;
 	UPROPERTY()
-		AActor* CameraFollowTarget;
+		TObjectPtr<AActor> CameraFollowTarget;
 	UPROPERTY()
 		float DeltaSeconds;
 	UPROPERTY()

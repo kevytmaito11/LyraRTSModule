@@ -6,11 +6,11 @@
 #include "AttributeSet.h"
 #include "AbilitySystem/Attributes/LyraAttributeSet.h"
 #include "NativeGameplayTags.h"
+#include "AbilitySystemComponent.h"
 #include "RTSAttributeSet.generated.h"
 
 
 class AActor;
-class UAbilitySystemComponent;
 class ULyraAbilitySystemComponent;
 class UObject;
 class UWorld;

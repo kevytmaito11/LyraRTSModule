@@ -10,7 +10,6 @@
 #include "Engine/EngineTypes.h"
 #include "GameFramework/Actor.h"
 #include "GameplayAbilitySpec.h"
-#include "Input/LyraMappableConfigPair.h"
 #include "Templates/SubclassOf.h"
 #include "UObject/NameTypes.h"
 #include "UObject/UObjectGlobals.h"
@@ -89,8 +88,6 @@ protected:
 		FActorComponentTickFunction* ThisTickFunction
 	) override;
 	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	
-	virtual void InitializePlayerInput(UInputComponent* PlayerInputComponent) override;
 
 	void Input_MoveCamera(const FInputActionValue& InputActionValue);
 	void Input_DragCamera(const FInputActionValue& InputActionValue);
@@ -108,8 +105,6 @@ private:
 	void EdgeScrollRight();
 	void EdgeScrollUp();
 	void EdgeScrollDown();
-
-	void BindInputTags( ULyraInputComponent* PlayerInputComponent, const ULyraInputConfig* InputConfig);
 
 	TQueue<FCameraMovementCommand> CameraMovementCommandQueue;
 

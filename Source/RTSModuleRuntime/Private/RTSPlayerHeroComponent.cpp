@@ -22,10 +22,10 @@
 #include "Settings/LyraSettingsLocal.h"
 #include "System/LyraAssetManager.h"
 #include "PlayerMappableInputConfig.h"
-#include "Input/LyraMappableConfigPair.h"
 #include "Camera/LyraCameraMode.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "InputMappingContext.h"
 
 #include UE_INLINE_GENERATED_CPP_BY_NAME(RTSPlayerHeroComponent)
 
@@ -88,70 +88,6 @@ void URTSPlayerHeroComponent::TickComponent(float DeltaTime, ELevelTick TickType
 void URTSPlayerHeroComponent::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-}
-
-void URTSPlayerHeroComponent::InitializePlayerInput(UInputComponent* PlayerInputComponent)
-{
-	check(PlayerInputComponent);
-
-	const APawn* Pawn = GetPawn<APawn>();
-	if (!Pawn)
-	{
-		return;
-	}
-
-	const APlayerController* PC = GetController<APlayerController>();
-	check(PC);
-
-	const ULyraLocalPlayer* LP = Cast<ULyraLocalPlayer>(PC->GetLocalPlayer());
-	check(LP);
-
-	//ConditionallyEnableEdgeScrolling();
-
-	UEnhancedInputLocalPlayerSubsystem* Subsystem = LP->GetSubsystem<UEnhancedInputLocalPlayerSubsystem>();
-	check(Subsystem);
-
-	Subsystem->ClearAllMappings();
-
-	if (const ULyraPawnExtensionComponent* PawnExtComp = ULyraPawnExtensionComponent::FindPawnExtensionComponent(Pawn))
-	{
-		if (const ULyraPawnData* PawnData = PawnExtComp->GetPawnData<ULyraPawnData>())
-		{
-			if (const ULyraInputConfig* InputConfig = PawnData->InputConfig)
-			{
-			/*	const FRTSGameplayTags& GameplayTags = FRTSGameplayTags::Get();*/
-
-				// Register any default input configs with the settings so that they will be applied to the player during AddInputMappings
-				for (const FMappableConfigPair& Pair : DefaultInputConfigs)
-				{
-					{
-						FModifyContextOptions Options = {};
-						Options.bIgnoreAllPressedKeysUntilRelease = false;
-						// Actually add the config to the local player							
-						Subsystem->AddPlayerMappableConfig(Pair.Config.LoadSynchronous(), Options);
-					}
-				}
-
-				// Need to change expose LyInputConfig and LyraInputComponent
-				ULyraInputComponent* LyraIC = CastChecked<ULyraInputComponent>(PlayerInputComponent);
-				LyraIC->AddInputMappings(InputConfig, Subsystem);
-
-				TArray<uint32> BindHandles;
-				LyraIC->BindAbilityActions(InputConfig, this, &ThisClass::Input_AbilityInputTagPressed, &ThisClass::Input_AbilityInputTagReleased, /*out*/ BindHandles);
-
-				BindInputTags(LyraIC, InputConfig);
-
-			}
-		}
-	}
-
-	if (ensure(!bReadyToBindInputs))
-	{
-		bReadyToBindInputs = true;
-	}
-
-	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APlayerController*>(PC), NAME_BindInputsNow);
-	UGameFrameworkComponentManager::SendGameFrameworkComponentExtensionEvent(const_cast<APawn*>(Pawn), NAME_BindInputsNow);
 }
 
 void URTSPlayerHeroComponent::Input_MoveCamera(const FInputActionValue& InputActionValue)
@@ -475,15 +411,4 @@ void URTSPlayerHeroComponent::EdgeScrollDown()
 		CameraTags.AddTag(TAG_Direction_Down);
 		QueueCameraMovementCommand(-1*Direction, Movement * EdgeScrollSpeed, CameraTags);
 	};
-}
-
-void URTSPlayerHeroComponent::BindInputTags(ULyraInputComponent* PlayerInputComponent, const ULyraInputConfig* InputConfig)
-{
-	const FRTSGameplayTags& GameplayTags = FRTSGameplayTags::Get();
-	PlayerInputComponent->BindNativeAction(InputConfig, GameplayTags.Input_CameraMove, ETriggerEvent::Triggered, this, &ThisClass::Input_MoveCamera, /*bLogIfNotFound=*/ false);
-	PlayerInputComponent->BindNativeAction(InputConfig, GameplayTags.Input_CameraTurnLeft, ETriggerEvent::Triggered, this, &ThisClass::Input_RotateCameraLeft, /*bLogIfNotFound=*/ false);
-	PlayerInputComponent->BindNativeAction(InputConfig, GameplayTags.Input_CameraTurnRight, ETriggerEvent::Triggered, this, &ThisClass::Input_RotateCameraRight, /*bLogIfNotFound=*/ false);
-	//PlayerInputComponent->BindNativeAction(InputConfig, InputTag_Camera_EdgeScroll, ETriggerEvent::Triggered, this, &ThisClass::Input_EdgeScrollCamera, /*bLogIfNotFound=*/ false);
-	PlayerInputComponent->BindNativeAction(InputConfig, GameplayTags.Input_CameraDrag, ETriggerEvent::Triggered, this, &ThisClass::Input_DragCamera, /*bLogIfNotFound=*/ false);
-
 }
